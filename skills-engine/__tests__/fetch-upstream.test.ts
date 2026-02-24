@@ -8,7 +8,7 @@ describe('fetch-upstream.sh', () => {
   let projectDir: string;
   let upstreamBareDir: string;
   const scriptPath = path.resolve(
-    '.claude/skills/update/scripts/fetch-upstream.sh',
+    '.gemini/skills/update/scripts/fetch-upstream.sh',
   );
 
   beforeEach(() => {
@@ -19,9 +19,7 @@ describe('fetch-upstream.sh', () => {
     execSync('git init --bare', { cwd: upstreamBareDir, stdio: 'pipe' });
 
     // Create a working repo, add files, push to the bare repo
-    const seedDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'nanoclaw-seed-'),
-    );
+    const seedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nanoclaw-seed-'));
     execSync('git init', { cwd: seedDir, stdio: 'pipe' });
     execSync('git config user.email "test@test.com"', {
       cwd: seedDir,
@@ -33,10 +31,7 @@ describe('fetch-upstream.sh', () => {
       JSON.stringify({ name: 'nanoclaw', version: '2.0.0' }),
     );
     fs.mkdirSync(path.join(seedDir, 'src'), { recursive: true });
-    fs.writeFileSync(
-      path.join(seedDir, 'src/index.ts'),
-      'export const v = 2;',
-    );
+    fs.writeFileSync(path.join(seedDir, 'src/index.ts'), 'export const v = 2;');
     execSync('git add -A && git commit -m "upstream v2.0.0"', {
       cwd: seedDir,
       stdio: 'pipe',
@@ -64,9 +59,7 @@ describe('fetch-upstream.sh', () => {
     fs.rmSync(seedDir, { recursive: true, force: true });
 
     // Create the "project" repo that will run the script
-    projectDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'nanoclaw-project-'),
-    );
+    projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nanoclaw-project-'));
     execSync('git init', { cwd: projectDir, stdio: 'pipe' });
     execSync('git config user.email "test@test.com"', {
       cwd: projectDir,
@@ -94,10 +87,13 @@ describe('fetch-upstream.sh', () => {
     // Copy the script into the project so it can find PROJECT_ROOT
     const skillScriptsDir = path.join(
       projectDir,
-      '.claude/skills/update/scripts',
+      '.gemini/skills/update/scripts',
     );
     fs.mkdirSync(skillScriptsDir, { recursive: true });
-    fs.copyFileSync(scriptPath, path.join(skillScriptsDir, 'fetch-upstream.sh'));
+    fs.copyFileSync(
+      scriptPath,
+      path.join(skillScriptsDir, 'fetch-upstream.sh'),
+    );
     fs.chmodSync(path.join(skillScriptsDir, 'fetch-upstream.sh'), 0o755);
   });
 
@@ -114,7 +110,7 @@ describe('fetch-upstream.sh', () => {
     try {
       const stdout = execFileSync(
         'bash',
-        ['.claude/skills/update/scripts/fetch-upstream.sh'],
+        ['.gemini/skills/update/scripts/fetch-upstream.sh'],
         {
           cwd: projectDir,
           encoding: 'utf-8',
@@ -122,9 +118,14 @@ describe('fetch-upstream.sh', () => {
           timeout: 30_000,
         },
       );
+      console.log(stdout);
       return { stdout, exitCode: 0 };
     } catch (err: any) {
-      return { stdout: (err.stdout ?? '') + (err.stderr ?? ''), exitCode: err.status ?? 1 };
+      console.log(err.stdout);
+      return {
+        stdout: (err.stdout ?? '') + (err.stderr ?? ''),
+        exitCode: err.status ?? 1,
+      };
     }
   }
 
@@ -149,6 +150,7 @@ describe('fetch-upstream.sh', () => {
     });
 
     const { stdout, exitCode } = runFetchUpstream();
+    console.log(stdout);
     const status = parseStatus(stdout);
 
     expect(exitCode).toBe(0);
@@ -159,23 +161,23 @@ describe('fetch-upstream.sh', () => {
     expect(status.TEMP_DIR).toMatch(/^\/tmp\/nanoclaw-update-/);
 
     // Verify extracted files exist
-    expect(
-      fs.existsSync(path.join(status.TEMP_DIR, 'package.json')),
-    ).toBe(true);
-    expect(
-      fs.existsSync(path.join(status.TEMP_DIR, 'src/index.ts')),
-    ).toBe(true);
+    expect(fs.existsSync(path.join(status.TEMP_DIR, 'package.json'))).toBe(
+      true,
+    );
+    expect(fs.existsSync(path.join(status.TEMP_DIR, 'src/index.ts'))).toBe(
+      true,
+    );
 
     // Cleanup temp dir
     fs.rmSync(status.TEMP_DIR, { recursive: true, force: true });
   });
 
-  it('uses origin when it points to qwibitai/nanoclaw', () => {
-    // Set origin to a URL containing qwibitai/nanoclaw
-    execSync(
-      `git remote add origin https://github.com/qwibitai/nanoclaw.git`,
-      { cwd: projectDir, stdio: 'pipe' },
-    );
+  it('uses origin when it points to ztamas83/nanoclaw', () => {
+    // Set origin to a URL containing ztamas83/nanoclaw
+    execSync(`git remote add origin https://github.com/ztamas83/nanoclaw.git`, {
+      cwd: projectDir,
+      stdio: 'pipe',
+    });
     // We can't actually fetch from GitHub in tests, but we can verify
     // it picks the right remote. We'll add a second remote it CAN fetch from.
     execSync(`git remote add upstream ${upstreamBareDir}`, {
@@ -218,7 +220,7 @@ describe('fetch-upstream.sh', () => {
       encoding: 'utf-8',
     });
     expect(remotes).toContain('upstream');
-    expect(remotes).toContain('qwibitai/nanoclaw');
+    expect(remotes).toContain('ztamas83/nanoclaw');
   });
 
   it('extracts files to temp dir correctly', () => {

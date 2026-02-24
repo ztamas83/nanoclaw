@@ -37,14 +37,14 @@ export interface ReplayResult {
 }
 
 /**
- * Scan .claude/skills/ for a directory whose manifest.yaml has skill: <skillName>.
+ * Scan .gemini/skills/ for a directory whose manifest.yaml has skill: <skillName>.
  */
 export function findSkillDir(
   skillName: string,
   projectRoot?: string,
 ): string | null {
   const root = projectRoot ?? process.cwd();
-  const skillsRoot = path.join(root, '.claude', 'skills');
+  const skillsRoot = path.join(root, '.gemini', 'skills');
   if (!fs.existsSync(skillsRoot)) return null;
 
   for (const entry of fs.readdirSync(skillsRoot, { withFileTypes: true })) {
@@ -117,9 +117,10 @@ export async function replaySkills(
 
   // 3. Load pre-computed resolutions into git's rr-cache before replaying
   // Pass the last skill's dir — it's the one applied on top, producing conflicts
-  const lastSkillDir = options.skills.length > 0
-    ? options.skillDirs[options.skills[options.skills.length - 1]]
-    : undefined;
+  const lastSkillDir =
+    options.skills.length > 0
+      ? options.skillDirs[options.skills[options.skills.length - 1]]
+      : undefined;
   loadResolutions(options.skills, projectRoot, lastSkillDir);
 
   // Replay each skill in order

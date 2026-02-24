@@ -36,7 +36,7 @@ describe('uninstall', () => {
       modifiesBase?: Record<string, string>;
     } = {},
   ): void {
-    const skillDir = path.join(tmpDir, '.claude', 'skills', name);
+    const skillDir = path.join(tmpDir, '.gemini', 'skills', name);
     fs.mkdirSync(skillDir, { recursive: true });
 
     const addsList = Object.keys(opts.adds ?? {});
@@ -144,7 +144,7 @@ describe('uninstall', () => {
       'telegram code\n',
     );
 
-    // Set up skill package in .claude/skills/
+    // Set up skill package in .gemini/skills/
     setupSkillPackage('telegram', {
       adds: { 'src/telegram.ts': 'telegram code\n' },
       modifies: {
@@ -203,16 +203,14 @@ describe('uninstall', () => {
     setupSkillPackage('telegram', {
       adds: { 'src/telegram.ts': 'tg code\n' },
       modifies: {
-        'src/config.ts':
-          'telegram import\nline1\nline2\nline3\nline4\nline5\n',
+        'src/config.ts': 'telegram import\nline1\nline2\nline3\nline4\nline5\n',
       },
     });
 
     setupSkillPackage('discord', {
       adds: { 'src/discord.ts': 'dc code\n' },
       modifies: {
-        'src/config.ts':
-          'line1\nline2\nline3\nline4\nline5\ndiscord import\n',
+        'src/config.ts': 'line1\nline2\nline3\nline4\nline5\ndiscord import\n',
       },
     });
 
